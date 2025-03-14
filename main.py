@@ -3,14 +3,19 @@ import os
 import random
 import time
 from gtts import gTTS
+from pydub import AudioSegment
 from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
 from datetime import datetime
+from pydub.utils import which
 
-AUDIO_PATH = "C:\\Users\\sdavg\\Projects\\GtaVids\\TTS\\story.wav"  # Output audio in WAV format
-VIDEO_FOLDER = "C:\\Users\\sdavg\\Projects\\GtaVids\\Gameplay"
-VIDEO_FOLDER_2 = "C:\\Users\\sdavg\\Projects\\MinecraftVids"
-OUTPUT_VIDEO_PATH = "C:\\Users\\sdavg\\Projects\\GtaVids\\Final"
-MUSIC_FOLDER = "C:\\Users\\sdavg\\Projects\\BackGroundMusic"  # Folder with eerie music
+
+os.environ["PATH"] += os.pathsep + r"C:\Users\30693\Desktop\ffmpeg-master-latest-win64-gpl\bin"
+AudioSegment.converter = which("ffmpeg")
+AUDIO_PATH = "C:\\Users\\30693\\Projects\\GtaVids\\TTS\\story.wav"  # Output audio in WAV format
+VIDEO_FOLDER = "C:\\Users\\30693\\Projects\\GtaVids\\Gameplay"
+VIDEO_FOLDER_2 = "C:\\Users\\30693\\Projects\\MinecraftVids"
+OUTPUT_VIDEO_PATH = "C:\\Users\\30693\\Projects\\GtaVids\\Final"
+MUSIC_FOLDER = "C:\\Users\\30693\\Projects\\BackGroundMusic"  # Folder with eerie music
 
 def generate_scary_story():
     """Generate a scary story using Ollama's Mistral model."""
@@ -24,7 +29,7 @@ def generate_scary_story():
     return story['message']['content']
 
 def text_to_speech(text, output_file):
-    """Convert text to speech using gTTS (Google Text-to-Speech)."""
+    """Convert text to speech and adjust the speed."""
     if os.path.exists(output_file):
         try:
             os.remove(output_file)
@@ -34,9 +39,18 @@ def text_to_speech(text, output_file):
             time.sleep(2)
             os.remove(output_file)
 
-    tts = gTTS(text=text, lang="en")
+    # Generate speech with gTTS
+    tts = gTTS(text=text, lang="en", tld="us", slow=False)
     tts.save(output_file)
-    print(f"Audio saved as {output_file}")
+
+    # Load the audio and increase the speed
+    # audio = AudioSegment.from_file(output_file)
+    # faster_audio = audio.speedup(playback_speed=speed_factor)
+    # faster_audio.export(output_file, format="mp3")
+
+    
+
+    print(f"Faster audio saved as {output_file}")
     return AudioFileClip(output_file)  # Return the audio file as a clip
 
 def select_random_video(video_folders):
@@ -71,7 +85,7 @@ def create_video_with_audio(video_path, tts_audio_clip, music_audio_clip, output
     video = video.subclip(0, min(video.duration, tts_audio_clip.duration))
     
     # Combine TTS audio with background music while keeping the music at a lower volume
-    final_audio = CompositeAudioClip([tts_audio_clip, music_audio_clip.volumex(0.2)])  # Lower music volume
+    final_audio = CompositeAudioClip([tts_audio_clip, music_audio_clip.volumex(0.1)])  # Lower music volume
     
     # Set the final audio for the video
     video = video.set_audio(final_audio)
