@@ -4,11 +4,14 @@ import random
 import time
 from gtts import gTTS
 from moviepy.editor import VideoFileClip, AudioFileClip
+from datetime import datetime
+
 
 
 AUDIO_PATH = "C:\\Users\\sdavg\\Projects\\GtaVids\\TTS\\story.wav"  # Output audio in WAV format
 VIDEO_FOLDER = "C:\\Users\\sdavg\\Projects\\GtaVids\\Gameplay"
-OUTPUT_VIDEO_PATH = "C:\\Users\\sdavg\\Projects\\GtaVids\\Final\\scary_story_video.mp4"
+VIDEO_FOLDER_2 = "C:\\Users\\sdavg\\Projects\\MinecraftVids"
+OUTPUT_VIDEO_PATH = "C:\\Users\\sdavg\\Projects\\GtaVids\\Final"
 
 def generate_scary_story():
     """Generate a scary story using Ollama's Mistral model."""
@@ -37,12 +40,13 @@ def text_to_speech(text, output_file):
     tts.save(output_file)
     print(f"Audio saved as {output_file}")
 
-def select_random_video(video_folder):
-    """Select a random video file from the folder."""
-    videos = [f for f in os.listdir(video_folder) if f.endswith((".mp4", ".avi", ".mov"))]
+def select_random_video(video_folders):
+    """Select a random video file from one of the provided folders."""
+    selected_folder = random.choice(video_folders)  # Randomly choose one folder
+    videos = [f for f in os.listdir(selected_folder) if f.endswith((".mp4", ".avi", ".mov"))]
     if not videos:
-        raise FileNotFoundError("No video files found in the folder!")
-    return os.path.join(video_folder, random.choice(videos))
+        raise FileNotFoundError(f"No video files found in folder: {selected_folder}")
+    return os.path.join(selected_folder, random.choice(videos))
 
 def create_video_with_audio(video_path, audio_path, output_path):
     """Merges a video and audio into a final video."""
@@ -55,6 +59,11 @@ def create_video_with_audio(video_path, audio_path, output_path):
     video.write_videofile(output_path, codec="libx264", fps=video.fps)
     print(f"Final video saved to: {output_path}")
 
+def generate_unique_filename():
+    """Generate a unique filename with a timestamp."""
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    return os.path.join(OUTPUT_VIDEO_PATH, f"scary_story_{timestamp}.mp4")
+
 if __name__ == "__main__":
     print("Generating scary story...")
     story = generate_scary_story()
@@ -62,8 +71,10 @@ if __name__ == "__main__":
     print("Converting story to speech...")
     text_to_speech(story, AUDIO_PATH)
     
-    print("Selecting a random gameplay video...")
-    video_path = select_random_video(VIDEO_FOLDER)
+    print("Selecting a random gameplay or other video...")
+    video_folders = [VIDEO_FOLDER, VIDEO_FOLDER_2]  # List both folders
+    video_path = select_random_video(video_folders)
     
     print("Merging video and audio...")
-    create_video_with_audio(video_path, AUDIO_PATH, OUTPUT_VIDEO_PATH)
+    output_video_path = generate_unique_filename()
+    create_video_with_audio(video_path, AUDIO_PATH, output_video_path)
